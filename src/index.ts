@@ -1,13 +1,16 @@
 import express from 'express';
+import swaggerUi from 'swagger-ui-express';
 import { userRouter } from './routes/users.routes';
 import { healthRouter } from './routes/health';
 import { initDb } from './db';
+import { openApiSpec } from './swagger';
 
 const app = express();
 app.use(express.json());
 
 const port = process.env.PORT ?? 3002;
 
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiSpec));
 app.use('/health', healthRouter);
 app.use('/users', userRouter);
 

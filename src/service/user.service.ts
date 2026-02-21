@@ -15,10 +15,10 @@ export async function createUser(dto: CreateUserDto): Promise<User> {
     throw new ValidationError('Valid email is required');
   }
   const email = dto.email.trim();
-  const name = sanitizeString(dto.name, 255);
+  const name = sanitizeString(dto.name, 255) ?? undefined;
   const role = dto.role && isValidRole(dto.role) ? dto.role : 'user';
   const status = dto.status && isValidStatus(dto.status) ? dto.status : 'active';
-  const avatar = sanitizeString(dto.avatar, 512);
+  const avatar = sanitizeString(dto.avatar, 512) ?? undefined;
 
   try {
     return await userRepository.create({ email, name, role, status, avatar });
