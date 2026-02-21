@@ -1,79 +1,37 @@
 import { Request, Response } from 'express';
 import * as userService from '../service/user.service';
+import type { CreateUserBody, UpdateUserBody, ListUsersQuery } from '../schemas/user.schemas';
+import { asyncHandler } from '../middleware/asyncHandler';
 
-export async function list(req: Request, res: Response): Promise<void> {
-  try {
-    const query = req.validatedQuery!;
-    const result = await userService.listUsers(query);
-    res.json(result);
-  } catch (e) {
-    res.status(500).json({ error: (e as Error).message });
-  }
+function getId(req: Request): string {
+  return (req.validatedParams as { id: string }).id;
 }
 
-export async function getById(req: Request, res: Response): Promise<void> {
-  try {
-    const id = req.validatedParams!.id;
-    const user = await userService.getUserById(id);
-    if (!user) {
-      res.status(404).json({ error: 'Not found' });
-      return;
-    }
-    res.json(user);
-  } catch (e) {
-    res.status(500).json({ error: (e as Error).message });
-  }
-}
+export const list = asyncHandler(async (req, res) => {
+  const query = req.validatedQuery as ListUsersQuery;
+  const result = await userService.listUsers(query);
+  res.json(result);
+});
 
-export async function create(req: Request, res: Response): Promise<void> {
-  try {
-    const user = await userService.createUser(req.validatedBody as import('../schemas/user.schemas').CreateUserBody);
-    res.status(201).json(user);
-  } catch (e) {
-    if (e instanceof userService.ValidationError) {
-      res.status(400).json({ error: e.message });
-      return;
-    }
-    if (e instanceof userService.ConflictError) {
-      res.status(409).json({ error: e.message });
-      return;
-    }
-    res.status(500).json({ error: (e as Error).message });
-  }
-}
+export const getById = asyncHandler(async (req, res) => {
+  const user = await userService.getUserById(getId(req));
+  if (!user) throw new userService.NotFoundError();
+  res.json(user);
+});
 
-export async function update(req: Request, res: Response): Promise<void> {
-  try {
-    const id = req.validatedParams!.id;
-    const user = await userService.updateUser(id, req.validatedBody as import('../schemas/user.schemas').UpdateUserBody);
-    if (!user) {
-      res.status(404).json({ error: 'Not found' });
-      return;
-    }
-    res.json(user);
-  } catch (e) {
-    if (e instanceof userService.ValidationError) {
-      res.status(400).json({ error: e.message });
-      return;
-    }
-    if (e instanceof userService.ConflictError) {
-      res.status(409).json({ error: e.message });
-      return;
-    }
-    res.status(500).json({ error: (e as Error).message });
-  }
-}
+export const create = asyncHandler(async (req, res) => {
+  const user = await userService.createUser(req.validatedBody as CreateUserBody);
+  res.status(201).json(user);
+});
 
-export async function remove(req: Request, res: Response): Promise<void> {
-  try {
-    const id = req.validatedParams!.id;
-    const deleted = await userService.deleteUser(id);
-    if (!deleted) {
-      res.status(404).json({ error: 'Not found' });
-      return;
-    }
-    res.status(204).send();
-  } catch (e) {
-    res.status(500).json({ error: (e as Error).message });
-  }
-}
+export const update = asyncHandler(async (req, res) => {
+  const user = await userService.updateUser(getId(req), req.validatedBody as UpdateUserBody);
+  if (!user) throw new userService.NotFoundError();
+  res.json(user);
+});
+
+export const remove = asyncHandler(async (req, res) => {
+  const deleted = await userService.deleteUser(getId(req));
+  if (!deleted) throw new userService.NotFoundError();
+  res.status(204).send();
+});

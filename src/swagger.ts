@@ -6,6 +6,7 @@ export const openApiSpec = {
     description: 'User profiles, list/filter/pagination, and admin actions.',
   },
   servers: [{ url: '/', description: 'Current host' }],
+  security: [{ bearerAuth: [] }],
   paths: {
     '/health': {
       get: {
@@ -36,7 +37,7 @@ export const openApiSpec = {
           { name: 'role', in: 'query', description: 'Filter by role', schema: { type: 'string', enum: ['user', 'moderator', 'admin'] } },
           { name: 'page', in: 'query', description: 'Page number', schema: { type: 'integer', default: 1 } },
           { name: 'limit', in: 'query', description: 'Items per page', schema: { type: 'integer', default: 10 } },
-          { name: 'sortBy', in: 'query', description: 'Sort field', schema: { type: 'string', enum: ['created_at', 'updated_at', 'email', 'name', 'role', 'status', 'review_count'], default: 'created_at' } },
+          { name: 'sortBy', in: 'query', description: 'Sort field', schema: { type: 'string', enum: ['createdAt', 'updatedAt', 'email', 'name', 'role', 'status', 'reviewCount'], default: 'createdAt' } },
           { name: 'sortOrder', in: 'query', description: 'Sort direction', schema: { type: 'string', enum: ['asc', 'desc'], default: 'desc' } },
         ],
         responses: {
@@ -54,6 +55,7 @@ export const openApiSpec = {
               },
             },
           },
+          '401': { description: 'Unauthorized (missing or invalid JWT)', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
           '500': { description: 'Server error', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
         },
       },
@@ -74,6 +76,7 @@ export const openApiSpec = {
             content: { 'application/json': { schema: { $ref: '#/components/schemas/User' } } },
           },
           '400': { description: 'Validation error', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
+          '401': { description: 'Unauthorized (missing or invalid JWT)', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
           '409': { description: 'Email already exists', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
           '500': { description: 'Server error', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
         },
@@ -86,6 +89,7 @@ export const openApiSpec = {
         parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
         responses: {
           '200': { description: 'User', content: { 'application/json': { schema: { $ref: '#/components/schemas/User' } } } },
+          '401': { description: 'Unauthorized (missing or invalid JWT)', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
           '404': { description: 'Not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
           '500': { description: 'Server error', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
         },
@@ -105,6 +109,7 @@ export const openApiSpec = {
           '200': { description: 'Updated user', content: { 'application/json': { schema: { $ref: '#/components/schemas/User' } } } },
           '400': { description: 'Validation error', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
           '404': { description: 'Not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
+          '401': { description: 'Unauthorized (missing or invalid JWT)', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
           '409': { description: 'Email already exists', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
           '500': { description: 'Server error', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
         },
@@ -115,6 +120,7 @@ export const openApiSpec = {
         parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
         responses: {
           '204': { description: 'Deleted' },
+          '401': { description: 'Unauthorized (missing or invalid JWT)', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
           '404': { description: 'Not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
           '500': { description: 'Server error', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
         },
@@ -122,6 +128,14 @@ export const openApiSpec = {
     },
   },
   components: {
+    securitySchemes: {
+      bearerAuth: {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        description: 'JWT from auth service (Authorization: Bearer <token>)',
+      },
+    },
     schemas: {
       User: {
         type: 'object',

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import * as userController from '../controller/user.controller';
+import { requireAuth } from '../middleware/auth';
 import { validateBody, validateQuery, validateParams } from '../middleware/validate';
 import {
   createUserBodySchema,
@@ -9,6 +10,9 @@ import {
 } from '../schemas/user.schemas';
 
 export const userRouter = Router();
+
+/** All user routes require a valid JWT (Authorization: Bearer <token>). */
+userRouter.use(requireAuth);
 
 userRouter.get('/', validateQuery(listUsersQuerySchema), userController.list);
 userRouter.get('/:id', validateParams(uuidParamSchema), userController.getById);

@@ -8,9 +8,9 @@ export interface User {
   role: string;
   status: string;
   avatar: string | null;
-  review_count: number;
-  created_at: string;
-  updated_at: string | null;
+  reviewCount: number;
+  createdAt: string;
+  updatedAt: string | null;
 }
 
 export interface CreateUserDto {
@@ -27,11 +27,22 @@ export interface UpdateUserDto {
   role?: string;
   status?: string;
   avatar?: string;
-  review_count?: number;
+  reviewCount?: number;
 }
 
-export const SORT_KEYS = ['created_at', 'updated_at', 'email', 'name', 'role', 'status', 'review_count'] as const;
+export const SORT_KEYS = ['createdAt', 'updatedAt', 'email', 'name', 'role', 'status', 'reviewCount'] as const;
 export type SortKey = (typeof SORT_KEYS)[number];
+
+/** Map camelCase sort key to DB column name (snake_case). */
+export const SORT_KEY_TO_COLUMN: Record<SortKey, string> = {
+  createdAt: 'created_at',
+  updatedAt: 'updated_at',
+  email: 'email',
+  name: 'name',
+  role: 'role',
+  status: 'status',
+  reviewCount: 'review_count',
+};
 
 export interface ListQuery {
   search: string;

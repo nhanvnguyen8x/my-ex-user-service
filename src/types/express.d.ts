@@ -1,11 +1,13 @@
-import type { CreateUserBody, UpdateUserBody, ListUsersQuery } from '../schemas/user.schemas';
+import type { JwtPayload } from '../middleware/auth';
 
 declare global {
   namespace Express {
     interface Request {
-      validatedBody?: CreateUserBody | UpdateUserBody;
-      validatedQuery?: ListUsersQuery;
-      validatedParams?: { id: string };
+      validatedBody?: unknown;
+      validatedQuery?: unknown;
+      validatedParams?: unknown;
+      /** Set by auth middleware after successful JWT verification. */
+      auth?: JwtPayload;
     }
   }
 }

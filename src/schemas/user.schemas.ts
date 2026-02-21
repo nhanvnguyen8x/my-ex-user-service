@@ -21,7 +21,7 @@ export const updateUserBodySchema = z
     role: roleEnum.optional(),
     status: statusEnum.optional(),
     avatar: z.string().max(512).optional().transform((s) => (s?.trim() || undefined)),
-    review_count: z.coerce.number().int().min(0).optional(),
+    reviewCount: z.coerce.number().int().min(0).optional(),
   })
   .strict();
 
@@ -31,7 +31,7 @@ export const listUsersQuerySchema = z.object({
   role: roleEnum.optional().catch(undefined).transform((s) => s ?? null),
   page: z.coerce.number().int().min(1).optional().default(1),
   limit: z.coerce.number().int().min(1).max(100).optional().default(10),
-  sortBy: sortKeyEnum.optional().default('created_at'),
+  sortBy: sortKeyEnum.optional().default('createdAt'),
   sortOrder: sortOrderEnum.optional().default('desc'),
 });
 

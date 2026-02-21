@@ -50,10 +50,10 @@ export async function updateUser(id: string, dto: UpdateUserDto): Promise<User |
     data.status = dto.status;
   }
   if (dto.avatar !== undefined) data.avatar = sanitizeString(dto.avatar, 512) ?? undefined;
-  if (dto.review_count !== undefined) {
-    const n = Number(dto.review_count);
-    if (!Number.isInteger(n) || n < 0) throw new ValidationError('review_count must be a non-negative integer');
-    data.review_count = n;
+  if (dto.reviewCount !== undefined) {
+    const n = Number(dto.reviewCount);
+    if (!Number.isInteger(n) || n < 0) throw new ValidationError('reviewCount must be a non-negative integer');
+    data.reviewCount = n;
   }
 
   try {
@@ -71,6 +71,7 @@ export async function deleteUser(id: string): Promise<boolean> {
 }
 
 export class ValidationError extends Error {
+  readonly statusCode = 400;
   constructor(message: string) {
     super(message);
     this.name = 'ValidationError';
@@ -78,6 +79,7 @@ export class ValidationError extends Error {
 }
 
 export class NotFoundError extends Error {
+  readonly statusCode = 404;
   constructor(message = 'Not found') {
     super(message);
     this.name = 'NotFoundError';
@@ -85,6 +87,7 @@ export class NotFoundError extends Error {
 }
 
 export class ConflictError extends Error {
+  readonly statusCode = 409;
   constructor(message = 'Conflict') {
     super(message);
     this.name = 'ConflictError';

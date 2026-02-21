@@ -1,12 +1,28 @@
 import { pool } from '../db';
 import type { User, CreateUserDto, UpdateUserDto, ListQuery, ListUsersResult } from '../model/user.model';
+import { SORT_KEY_TO_COLUMN } from '../model/user.model';
 
 const SELECT_COLUMNS = 'id, email, name, role, status, avatar, review_count, created_at, updated_at';
+
+function rowToUser(row: Record<string, unknown>): User {
+  return {
+    id: row.id as string,
+    email: row.email as string,
+    name: row.name as string | null,
+    role: row.role as string,
+    status: row.status as string,
+    avatar: row.avatar as string | null,
+    reviewCount: Number(row.review_count),
+    createdAt: String(row.created_at),
+    updatedAt: row.updated_at != null ? String(row.updated_at) : null,
+  };
+}
 
 export async function findAll(query: ListQuery): Promise<ListUsersResult> {
   const { search, status, role, page, limit, sortBy, sortOrder } = query;
   const offset = (page - 1) * limit;
   const safeOrder = sortOrder === 'asc' ? 'ASC' : 'DESC';
+  const orderColumn = SORT_KEY_TO_COLUMN[sortBy];
 
   let whereClause = 'WHERE 1=1';
   const params: (string | number)[] = [];
@@ -37,13 +53,13 @@ export async function findAll(query: ListQuery): Promise<ListUsersResult> {
   const selectParams = [...params, limit, offset];
   const { rows } = await pool.query(
     `SELECT ${SELECT_COLUMNS} FROM users ${whereClause}
-     ORDER BY ${sortBy} ${safeOrder}
+     ORDER BY ${orderColumn} ${safeOrder}
      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
     selectParams
   );
 
   return {
-    data: rows as User[],
+    data: rows.map((r) => rowToUser(r)),
     pagination: {
       page,
       limit,
@@ -58,7 +74,7 @@ export async function findById(id: string): Promise<User | null> {
     `SELECT ${SELECT_COLUMNS} FROM users WHERE id = $1`,
     [id]
   );
-  return rows.length > 0 ? (rows[0] as User) : null;
+  return rows.length > 0 ? rowToUser(rows[0]) : null;
 }
 
 export async function create(data: CreateUserDto): Promise<User> {
@@ -69,7 +85,7 @@ export async function create(data: CreateUserDto): Promise<User> {
      RETURNING ${SELECT_COLUMNS}`,
     [email, name ?? null, role ?? 'user', status ?? 'active', avatar ?? null]
   );
-  return rows[0] as User;
+  return rowToUser(rows[0]);
 }
 
 export async function update(id: string, data: Partial<UpdateUserDto>): Promise<User | null> {
@@ -102,9 +118,9 @@ export async function update(id: string, data: Partial<UpdateUserDto>): Promise<
     values.push(data.avatar);
     paramIndex++;
   }
-  if (data.review_count !== undefined) {
+  if (data.reviewCount !== undefined) {
     updates.push(`review_count = $${paramIndex}`);
-    values.push(data.review_count);
+    values.push(data.reviewCount);
     paramIndex++;
   }
 
@@ -120,7 +136,7 @@ export async function update(id: string, data: Partial<UpdateUserDto>): Promise<
      RETURNING ${SELECT_COLUMNS}`,
     values
   );
-  return rows.length > 0 ? (rows[0] as User) : null;
+  return rows.length > 0 ? rowToUser(rows[0]) : null;
 }
 
 export async function remove(id: string): Promise<boolean> {
